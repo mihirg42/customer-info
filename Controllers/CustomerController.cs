@@ -1,16 +1,27 @@
 ﻿using customer_info.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace customer_info.Controllers
 {
-    public class HomeController : Controller
+    public class CustomerController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<CustomerController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        private readonly AppDbContext _context;
+
+        public CustomerController(AppDbContext context, ILogger<CustomerController> logger)
         {
+            _context = context;
             _logger = logger;
+        }
+
+        public List<Customers_temp> GetCustomers()
+        {
+            return _context.Customers_temp
+                           .FromSqlRaw("EXEC GetCustomers")
+                           .ToList();
         }
 
         public IActionResult Index()

@@ -2,14 +2,55 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row mb-3">
+    <div class="col-md-4">Date</div>
+    <div class="col-md-8"><input type="date" id="date" name="date"></div>
 </div>
 
 <div class="row mb-3">
-    <div class="col-md-3">Size</div>
-    <div class="col-md-3"><input type="number" id="size" /></div>
-    <div class="col-md-3">No of Dates</div>
-    <div class="col-md-3"><input type="number" id="sizeCal" /></div>
+    <div class="col-md-4">Name</div>
+    <div class="col-md-8"><input type="text" id="name" name="name" placeholder="Enter name"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">Address</div>
+    <div class="col-md-8"><textarea id="address" name="address" rows="4" cols="50" placeholder="Enter your full address"></textarea></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">Mobile Number</div>
+    <div class="col-md-8"><input type="tel" id="mobile" name="name" placeholder="Enter mobile number"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">Email</div>
+    <div class="col-md-8"><input type="email" id="email" name="email" placeholder="Enter email"></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">Gender</div>
+    <div class="col-md-3"><input type="radio" id="male" name="gender" value="male"><label for="male"> Male</label></div>
+    <div class="col-md-3"><input type="radio" id="female" name="gender" value="female"><label for="female"> Female</label></div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">Occupation</div>
+    <div class="col-md-4">
+        <select class="form-control" name="occupation">
+            <option value="">--Select Occupation--</option>
+            <option value="software">Software Developer</option>
+            <option value="ui/ux">UI/UX Designer</option>
+            <option value="qa">QA Tester</option>
+            <option value="devops">DevOps</option>
+        </select>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4">Cost</div>
+    <div class="col-md-8"><input type="number" id="cost" name="cost" placeholder="Enter cost"></div>
+</div>
+
+<div class="row mb-3 text-center">
+    <button type="button" id="save" class="btn btn-success">Submit</button>
 </div>
