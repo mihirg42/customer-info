@@ -25,5 +25,7 @@ namespace customer_info.Models
         public string? Occupation { get; set; }
 
         public int? Cost { get; set; }
+
+        public string? ImagePath { get; set; }
     }
 }

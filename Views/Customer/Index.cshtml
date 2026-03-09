@@ -4,12 +4,12 @@
 @model List<customer_info.Models.Customers_temp>
 
 <div class="row mb-3">
-    <div class="col-md-4">Date</div>
+    <div class="col-md-4">Date*</div>
     <div class="col-md-8"><input type="date" id="date" name="date"></div>
 </div>
 
 <div class="row mb-3">
-    <div class="col-md-4">Name</div>
+    <div class="col-md-4">Name*</div>
     <div class="col-md-8"><input type="text" id="name" name="name" placeholder="Enter name"></div>
 </div>
 
@@ -19,8 +19,8 @@
 </div>
 
 <div class="row mb-3">
-    <div class="col-md-4">Mobile Number</div>
-    <div class="col-md-8"><input type="tel" id="mobile" name="mobile" placeholder="Enter mobile number"></div>
+    <div class="col-md-4">Mobile Number*</div>
+    <div class="col-md-8"><input type="number" id="mobile" name="mobile" placeholder="Enter mobile number"></div>
 </div>
 
 <div class="row mb-3">
@@ -39,10 +39,10 @@
     <div class="col-md-4">
         <select class="form-control" name="occupation">
             <option value="">--Select Occupation--</option>
-            <option value="software">Software Developer</option>
-            <option value="ui/ux">UI/UX Designer</option>
-            <option value="qa">QA Tester</option>
-            <option value="devops">DevOps</option>
+            <option value="Software Developer">Software Developer</option>
+            <option value="UI/UX Designer">UI/UX Designer</option>
+            <option value="QA Tester">QA Tester</option>
+            <option value="DevOps">DevOps</option>
         </select>
     </div>
 </div>
@@ -52,54 +52,233 @@
     <div class="col-md-8"><input type="number" id="cost" name="cost" placeholder="Enter cost"></div>
 </div>
 
+<div class="row mb-3">
+    <div class="col-md-4">Image Path</div>
+    <div class="col-md-8"><input type="file" id="imgpath" name="imgpath" placeholder="Enter image path"></div>
+</div>
+
 <div class="row mb-3 text-center">
     <button type="button" id="btnSave" class="btn btn-success">Submit</button>
+</div>
+
+<div class="row mb-3 text-center">
+    <button type="button" id="btnView" class="btn btn-success">View</button>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12" id="result"></div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <script type="text/javascript">
 
+    let pk = -1;
+    var data;
 
-$("#btnSave").click(function () {
-    let gen = document.querySelector('input[name="gender"]:checked');
-    let occupation = document.querySelector('select[name="occupation"]').value;
-
-    var customerData = {
-        DateCol: $("#date").val(),
-        NameCol: $("#name").val(),
-        AddressCol: $("#address").val(),
-        Mobile: $("#mobile").val(),
-        Email: $("#email").val(),
-        Gender: gen ? gen.value : null,
-        Occupation: occupation,
-        Cost: $("#cost").val()
-    };
-
-    $.ajax({
-        url: "/Customer/PostCustomer",
-        type: "POST",
-        data: {
-            customer: customerData
-        },
-        dataType: "json",
+    $("#btnSave").click(function () {
         
-        error: function (error) {
-            console.error("Error:", error);
+        let gen = document.querySelector('input[name="gender"]:checked');
+        let occupation = document.querySelector('select[name="occupation"]').value;
+
+        var customerData = {
+            DateCol: $("#date").val(),
+            NameCol: $("#name").val(),
+            AddressCol: $("#address").val(),
+            Mobile: $("#mobile").val(),
+            Email: $("#email").val(),
+            Gender: gen ? gen.value : null,
+            Occupation: occupation,
+            Cost: $("#cost").val(),
+            ImagePath: $("#imgpath").val()
+        };
+
+        if (pk != -1) {
+            customerData.PersonID = pk;
         }
+
+        let url = pk == -1 ? "/Customer/PostCustomer" : "/Customer/UpdateCustomer";
+
+
+        $.ajax
+        ({
+            url: url,
+            type: "POST",
+            data: {
+                customer: customerData
+            },
+            dataType: "json",
+            success: function(l){
+                alert("Data updated/added successfully");
+
+                $("#date").val("");
+                $("#name").val("");
+                $("#address").val("");
+                $("#mobile").val("");
+                $("#email").val("");
+                $("#cost").val("");
+                $("input[name='gender']").prop("checked", false);
+                $("select[name='occupation']").val("");
+                $("#imgpath").val("");
+
+                pk = -1;
+
+                let html = "";
+                
+                $.ajax
+                ({
+                    url: "/Customer/GetCustomers",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (response)
+                    {
+                        data = response;
+                        console.log(response);
+                        data.forEach(function (item)
+                        {
+                            html += "<tr>";
+                            html += "<td>" + item.personID + "</td>";
+                            html += "<td>" + item.dateCol + "</td>";
+                            html += "<td>" + item.nameCol + "</td>";
+                            html += "<td>" + item.addressCol + "</td>";
+                            html += "<td>" + item.mobile + "</td>";
+                            html += "<td>" + item.email + "</td>";
+                            html += "<td>" + item.gender + "</td>";
+                            html += "<td>" + item.occupation + "</td>";
+                            html += "<td>" + item.cost + "</td>";
+                            html += "<td>" + item.imagePath + "</td>";
+                            html += "<td>" +
+                                        '<button class="btn btn-primary btn-sm edit-btn" data-id="' + item.personID + '">Edit</button> ' +
+                                    "</td>";
+                            html += "</tr>";
+                        });
+
+
+                        $("#result").empty();
+                        $("#result").html(
+                            '<div class="row mb-3">' +
+                                '<div class="col-md-12">' +
+                                    '<table class="table data-table">' +
+                                        '<thead>' +
+                                            '<tr>' +
+                                                '<th>Id</th>' +
+                                                '<th>Date</th>' +
+                                                '<th>Name</th>' +
+                                                '<th>Address</th>' +
+                                                '<th>Mobile</th>' +
+                                                '<th>Email</th>' +
+                                                '<th>Gender</th>' +
+                                                '<th>Occupation</th>' +
+                                                '<th>Cost</th>' +
+                                                '<th>Image Path</th>' +
+                                                '<th>Actions</th>' +
+                                            '</tr>' +
+                                        '</thead>' +
+                                        '<tbody>' +
+                                            html +
+                                        '</tbody>' +
+                                    '</table>' +
+                                '</div>' +
+                            '</div>'
+                        );
+                        html = "";
+                    },
+
+                    error: function (error) {
+                        console.error("Error:", error);
+                    }
+                });
+            }
+        });
     });
 
-    $.ajax({
-        url: "/Customer/GetCustomers",
-        type: "GET",
-        dataType: "json",
-        success: function (response) {
-            console.log(response);
-        },
-        error: function (error) {
-            console.error("Error:", error);
-        }
+    $("#btnView").click(function () {
+        let html = "";
+        $("#result").empty();
+        $.ajax({
+            url: "/Customer/GetCustomers",
+            type: "GET",
+            dataType: "json",
+            success: function (response) 
+            {
+                data = response;
+                console.log(response);
+                data.forEach(function (item) 
+                {
+                    html += "<tr>";
+                    html += "<td>" + item.personID + "</td>";
+                    html += "<td>" + item.dateCol + "</td>";
+                    html += "<td>" + item.nameCol + "</td>";
+                    html += "<td>" + item.addressCol + "</td>";
+                    html += "<td>" + item.mobile + "</td>";
+                    html += "<td>" + item.email + "</td>";
+                    html += "<td>" + item.gender + "</td>";
+                    html += "<td>" + item.occupation + "</td>";
+                    html += "<td>" + item.cost + "</td>";
+                    html += "<td>" + item.imagePath + "</td>";
+                    html += "<td>" +
+                                '<button class="btn btn-primary btn-sm edit-btn" data-id="' + item.personID + '">Edit</button> ' +
+                            "</td>";
+                    html += "</tr>";
+                });
+
+
+                $("#result").empty();
+                $("#result").html(
+                    '<div class="row mb-3">' +
+                        '<div class="col-md-12">' +
+                            '<table class="table data-table">' +
+                                '<thead>' +
+                                    '<tr>' +
+                                        '<th>Id</th>' +
+                                        '<th>Date</th>' +
+                                        '<th>Name</th>' +
+                                        '<th>Address</th>' +
+                                        '<th>Mobile</th>' +
+                                        '<th>Email</th>' +
+                                        '<th>Gender</th>' +
+                                        '<th>Occupation</th>' +
+                                        '<th>Cost</th>' +
+                                        '<th>Image Path</th>' +
+                                        '<th>Actions</th>' +
+                                    '</tr>' +
+                                '</thead>' +
+                                '<tbody>' +
+                                    html +
+                                '</tbody>' +
+                            '</table>' +
+                        '</div>' +
+                    '</div>'
+                );
+                html = "";
+            },
+                
+            error: function (error) {
+                console.error("Error:", error);
+            }
+        });
+
+        
     });
-});
+
+    $(document).on("click", ".edit-btn", function () {
+
+        pk = $(this).data("id");
+
+        let customer = data.find(c => c.personID == pk);
+
+        $("#date").val(customer.dateCol.split("T")[0]);
+        $("#name").val(customer.nameCol);
+        $("#address").val(customer.addressCol);
+        $("#mobile").val(customer.mobile);
+        $("#email").val(customer.email);
+        $("#cost").val(customer.cost);
+        $("#imgpath").val(customer.imagePath);
+
+        $("input[name='gender'][value='" + customer.gender + "']").prop("checked", true);
+
+        $("select[name='occupation']").val(customer.occupation);
+
+    });
 
 </script>

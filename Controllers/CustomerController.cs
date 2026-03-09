@@ -29,7 +29,7 @@ namespace customer_info.Controllers
                                     .FromSqlRaw("EXEC GetCustomers")
                                     .ToList();
 
-            return Ok(customers);
+            return Json(customers);
         }
 
         [HttpPost]
@@ -39,15 +39,37 @@ namespace customer_info.Controllers
                 "EXEC PostCustomer @DateCol, @NameCol, @AddressCol, @Mobile, @Email, @Gender, @Occupation, @Cost",
                 new SqlParameter("@DateCol", customer.DateCol),
                 new SqlParameter("@NameCol", customer.NameCol),
-                new SqlParameter("@AddressCol", customer.AddressCol),
+                new SqlParameter("@AddressCol", customer.AddressCol ?? (object)DBNull.Value),
                 new SqlParameter("@Mobile", customer.Mobile),
-                new SqlParameter("@Email", customer.Email),
-                new SqlParameter("@Gender", customer.Gender),
-                new SqlParameter("@Occupation", customer.Occupation),
-                new SqlParameter("@Cost", customer.Cost)
+                new SqlParameter("@Email", customer.Email ?? (object)DBNull.Value),
+                new SqlParameter("@Gender", customer.Gender ?? (object)DBNull.Value),
+                new SqlParameter("@Occupation", customer.Occupation ?? (object)DBNull.Value),
+                new SqlParameter("@Cost", customer.Cost ?? (object)DBNull.Value),
+                new SqlParameter("@ImagePath", customer.ImagePath ?? (object)DBNull.Value)
             );
 
-            return RedirectToAction("Index");
+            return Json(new { success = true });
+
+        }
+
+        [HttpPost]
+        public IActionResult UpdateCustomer(Customers_temp customer)
+        {
+            _context.Database.ExecuteSqlRaw(
+                "EXEC UpdateCustomer @PersonID, @DateCol, @NameCol, @AddressCol, @Mobile, @Email, @Gender, @Occupation, @Cost",
+                new SqlParameter("@PersonID", customer.PersonID),
+                new SqlParameter("@DateCol", customer.DateCol),
+                new SqlParameter("@NameCol", customer.NameCol),
+                new SqlParameter("@AddressCol", customer.AddressCol ?? (object)DBNull.Value),
+                new SqlParameter("@Mobile", customer.Mobile),
+                new SqlParameter("@Email", customer.Email ?? (object)DBNull.Value),
+                new SqlParameter("@Gender", customer.Gender ?? (object)DBNull.Value),
+                new SqlParameter("@Occupation", customer.Occupation ?? (object)DBNull.Value),
+                new SqlParameter("@Cost", customer.Cost ?? (object)DBNull.Value),
+                new SqlParameter("@ImagePath", customer.ImagePath ?? (object)DBNull.Value)
+            );
+
+            return Json(new { success = true });
         }
         public IActionResult TestConnection()
         {
