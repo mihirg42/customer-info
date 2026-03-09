@@ -1,6 +1,7 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Customer Page";
 }
+@model List<customer_info.Models.Customers_temp>
 
 <div class="row mb-3">
     <div class="col-md-4">Date</div>
@@ -19,7 +20,7 @@
 
 <div class="row mb-3">
     <div class="col-md-4">Mobile Number</div>
-    <div class="col-md-8"><input type="tel" id="mobile" name="name" placeholder="Enter mobile number"></div>
+    <div class="col-md-8"><input type="tel" id="mobile" name="mobile" placeholder="Enter mobile number"></div>
 </div>
 
 <div class="row mb-3">
@@ -52,5 +53,53 @@
 </div>
 
 <div class="row mb-3 text-center">
-    <button type="button" id="save" class="btn btn-success">Submit</button>
+    <button type="button" id="btnSave" class="btn btn-success">Submit</button>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script type="text/javascript">
+
+
+$("#btnSave").click(function () {
+    let gen = document.querySelector('input[name="gender"]:checked');
+    let occupation = document.querySelector('select[name="occupation"]').value;
+
+    var customerData = {
+        DateCol: $("#date").val(),
+        NameCol: $("#name").val(),
+        AddressCol: $("#address").val(),
+        Mobile: $("#mobile").val(),
+        Email: $("#email").val(),
+        Gender: gen ? gen.value : null,
+        Occupation: occupation,
+        Cost: $("#cost").val()
+    };
+
+    $.ajax({
+        url: "/Customer/PostCustomer",
+        type: "POST",
+        data: {
+            customer: customerData
+        },
+        dataType: "json",
+        
+        error: function (error) {
+            console.error("Error:", error);
+        }
+    });
+
+    $.ajax({
+        url: "/Customer/GetCustomers",
+        type: "GET",
+        dataType: "json",
+        success: function (response) {
+            console.log(response);
+        },
+        error: function (error) {
+            console.error("Error:", error);
+        }
+    });
+});
+
+</script>

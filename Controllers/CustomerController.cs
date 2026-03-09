@@ -1,7 +1,9 @@
 ﻿using customer_info.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+
 
 namespace customer_info.Controllers
 {
@@ -9,19 +11,52 @@ namespace customer_info.Controllers
     {
         private readonly ILogger<CustomerController> _logger;
 
+        private readonly IConfiguration _configuration;
+
         private readonly AppDbContext _context;
 
-        public CustomerController(AppDbContext context, ILogger<CustomerController> logger)
+        public CustomerController(AppDbContext context, ILogger<CustomerController> logger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _configuration = configuration;
         }
 
-        public List<Customers_temp> GetCustomers()
+        [HttpGet]
+        public IActionResult GetCustomers()
         {
-            return _context.Customers_temp
-                           .FromSqlRaw("EXEC GetCustomers")
-                           .ToList();
+            var customers = _context.Customers_temp
+                                    .FromSqlRaw("EXEC GetCustomers")
+                                    .ToList();
+
+            return Ok(customers);
+        }
+
+        [HttpPost]
+        public IActionResult PostCustomer(Customers_temp customer)
+        {
+            _context.Database.ExecuteSqlRaw(
+                "EXEC PostCustomer @DateCol, @NameCol, @AddressCol, @Mobile, @Email, @Gender, @Occupation, @Cost",
+                new SqlParameter("@DateCol", customer.DateCol),
+                new SqlParameter("@NameCol", customer.NameCol),
+                new SqlParameter("@AddressCol", customer.AddressCol),
+                new SqlParameter("@Mobile", customer.Mobile),
+                new SqlParameter("@Email", customer.Email),
+                new SqlParameter("@Gender", customer.Gender),
+                new SqlParameter("@Occupation", customer.Occupation),
+                new SqlParameter("@Cost", customer.Cost)
+            );
+
+            return RedirectToAction("Index");
+        }
+        public IActionResult TestConnection()
+        {
+            using (SqlConnection conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                conn.Open();
+            }
+
+            return Content("Database Connected Successfully");
         }
 
         public IActionResult Index()
