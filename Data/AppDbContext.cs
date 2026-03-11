@@ -8,4 +8,5 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Customers_temp> Customers_temp { get; set; }
+    public DbSet<Customers_Unit_temp> Customers_Unit_temp { get; set; }
 }

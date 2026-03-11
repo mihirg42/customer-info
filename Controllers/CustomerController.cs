@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Drawing;
 
 
 namespace customer_info.Controllers
@@ -32,11 +33,32 @@ namespace customer_info.Controllers
             return Json(customers);
         }
 
+        [HttpGet]
+        public IActionResult GetUnit(int personID)
+        {
+            var units = _context.Customers_Unit_temp
+                                .FromSqlRaw(
+                                    "EXEC GetUnit @PersonID",
+                                    new SqlParameter("@PersonID", personID)
+                                )
+                                .ToList();
+
+            return Json(units);
+        }
+
+        SqlParameter personIdParam = new SqlParameter
+        {
+            ParameterName = "@PersonID",
+            SqlDbType = System.Data.SqlDbType.Int,
+            Direction = System.Data.ParameterDirection.Output
+        };
+
+
         [HttpPost]
-        public IActionResult PostCustomer(Customers_temp customer)
+        public IActionResult PostCustomer(Customers_temp customer, int size, List<string> unitNo, List<int> area, List<int> unitCost)
         {
             _context.Database.ExecuteSqlRaw(
-                "EXEC PostCustomer @DateCol, @NameCol, @AddressCol, @Mobile, @Email, @Gender, @Occupation, @Cost",
+                "EXEC PostCustomer @DateCol, @NameCol, @AddressCol, @Mobile, @Email, @Gender, @Occupation, @Cost, @ImagePath, @PersonID OUTPUT",
                 new SqlParameter("@DateCol", customer.DateCol),
                 new SqlParameter("@NameCol", customer.NameCol),
                 new SqlParameter("@AddressCol", customer.AddressCol ?? (object)DBNull.Value),
@@ -45,18 +67,34 @@ namespace customer_info.Controllers
                 new SqlParameter("@Gender", customer.Gender ?? (object)DBNull.Value),
                 new SqlParameter("@Occupation", customer.Occupation ?? (object)DBNull.Value),
                 new SqlParameter("@Cost", customer.Cost ?? (object)DBNull.Value),
-                new SqlParameter("@ImagePath", customer.ImagePath ?? (object)DBNull.Value)
+                new SqlParameter("@ImagePath", customer.ImagePath ?? (object)DBNull.Value),
+
+                personIdParam
             );
+
+            int personId = (int)personIdParam.Value;
+
+            for (int i = 0; i < size; i++)
+            {
+                _context.Database.ExecuteSqlRaw(
+                    "EXEC PostUnit @UnitNo, @Area, @UnitCost, @PersonID",
+
+                    new SqlParameter("@UnitNo", unitNo[i] ?? (object)DBNull.Value),
+                    new SqlParameter("@Area", area[i]),
+                    new SqlParameter("@UnitCost", unitCost[i]),
+                    new SqlParameter("@PersonID", personId)
+                );
+            }
 
             return Json(new { success = true });
 
         }
 
         [HttpPost]
-        public IActionResult UpdateCustomer(Customers_temp customer)
+        public IActionResult UpdateCustomer(Customers_temp customer, int size, List<string> unitNo, List<int> area, List<int> unitCost)
         {
             _context.Database.ExecuteSqlRaw(
-                "EXEC UpdateCustomer @PersonID, @DateCol, @NameCol, @AddressCol, @Mobile, @Email, @Gender, @Occupation, @Cost",
+                "EXEC UpdateCustomer @PersonID, @DateCol, @NameCol, @AddressCol, @Mobile, @Email, @Gender, @Occupation, @Cost, @ImagePath",
                 new SqlParameter("@PersonID", customer.PersonID),
                 new SqlParameter("@DateCol", customer.DateCol),
                 new SqlParameter("@NameCol", customer.NameCol),
@@ -68,6 +106,18 @@ namespace customer_info.Controllers
                 new SqlParameter("@Cost", customer.Cost ?? (object)DBNull.Value),
                 new SqlParameter("@ImagePath", customer.ImagePath ?? (object)DBNull.Value)
             );
+
+            for (int i = 0; i < size; i++)
+            {
+                _context.Database.ExecuteSqlRaw(
+                    "EXEC PostUnit @UnitNo, @Area, @UnitCost, @PersonID",
+
+                    new SqlParameter("@UnitNo", unitNo[i] ?? (object)DBNull.Value),
+                    new SqlParameter("@Area", area[i]),
+                    new SqlParameter("@UnitCost", unitCost[i]),
+                    new SqlParameter("@PersonID", customer.PersonID)
+                );
+            }
 
             return Json(new { success = true });
         }

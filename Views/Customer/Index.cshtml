@@ -49,7 +49,7 @@
 
 <div class="row mb-3">
     <div class="col-md-4">Cost</div>
-    <div class="col-md-8"><input type="number" id="cost" name="cost" placeholder="Enter cost"></div>
+    <div class="col-md-8"><input readonly type="number" id="cost" name="cost" placeholder="Read Only"></div>
 </div>
 
 <div class="row mb-3">
@@ -57,8 +57,20 @@
     <div class="col-md-8"><input type="file" id="imgpath" name="imgpath" placeholder="Enter image path"></div>
 </div>
 
+<div class="row mb-3">
+    <div class="col-md-4">No of Units</div>
+    <div class="col-md-4"><input type="number" id="noOfUnits" name="noOfUnits" placeholder="Enter number of units"></div>
+    <div class="col-md-4">
+        <button class="btn btn-primary btn-sm" id="btnUnit">Go</button>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-12" id="unit"></div>
+</div>
+
 <div class="row mb-3 text-center">
-    <button type="button" id="btnSave" class="btn btn-success">Submit</button>
+    <button type="button" id="btnSave" class="btn btn-success">Save</button>
 </div>
 
 <div class="row mb-3 text-center">
@@ -72,6 +84,50 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <script type="text/javascript">
+     var noOfUnits = 0;
+     $(document).on("click", "#btnUnit", function (e) {
+
+        e.preventDefault();
+
+        noOfUnits = parseInt($("#noOfUnits").val());
+
+        $("#unit").empty();
+
+        for(var i = 1; i <= noOfUnits; i++) {
+            $("#unit").append(
+                '<div class="row mb-3">'+
+                    '<div class="col-md-2">' +
+                        'Unit No' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                        '<input type="text" class="form-control unitNo" placeholder="Unit ' + i + '" />' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                        'Area' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                        '<input type="number" class="form-control area" placeholder="Area ' + i + '" />' +
+                    '</div>' +'<div class="col-md-2">' +
+                        'Unit Cost' +
+                    '</div>' +
+                    '<div class="col-md-2">' +
+                        '<input type="number" class="form-control unitCost" placeholder="Cost ' + i + '" />' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+        const input = document.querySelectorAll(".unitCost");
+        input.forEach(function(element) {
+            element.addEventListener("keyup", function() {
+                let totalCost = 0;
+                input.forEach(function(el) {
+                    totalCost += parseFloat(el.value) || 0;
+                });
+                $("#cost").val(totalCost);
+            });
+        });
+
+     })
 
     let pk = -1;
     var data;
@@ -80,6 +136,52 @@
         
         let gen = document.querySelector('input[name="gender"]:checked');
         let occupation = document.querySelector('select[name="occupation"]').value;
+
+        var unitNo = [];
+        var area = [];
+        var unitCost = [];
+
+        $(".unitNo").each(function(){
+            unitNo.push($(this).val());
+        })
+
+        $(".area").each(function(){
+            area.push($(this).val());
+        })
+
+        $(".unitCost").each(function(){
+            unitCost.push($(this).val());
+        })
+
+        if($("#date").val() == "")
+        {
+            alert("Add Date");
+            return;
+        }
+
+        if($("#name").val() == "")
+        {
+            alert("Add Name");
+            return;
+        }
+
+        let mobile = $("#mobile").val();
+        let mobilePattern = /^[6-9]\d{9}$/;
+        if (!mobilePattern.test(mobile)) {
+            alert("Enter a valid mobile number");
+            return;
+        }
+
+        let email = $("#email").val();
+
+        if (email != "") {
+            let emailPattern = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+
+            if (!emailPattern.test(email)) {
+                alert("Enter a valid email address");
+                return;
+            }
+        }
 
         var customerData = {
             DateCol: $("#date").val(),
@@ -105,11 +207,15 @@
             url: url,
             type: "POST",
             data: {
-                customer: customerData
+                customer: customerData,
+                size: noOfUnits,
+                unitNo: unitNo,
+                area: area,
+                unitCost: unitCost
             },
             dataType: "json",
             success: function(l){
-                alert("Data updated/added successfully");
+                alert("Data updated/added successfully")
 
                 $("#date").val("");
                 $("#name").val("");
@@ -146,7 +252,7 @@
                             html += "<td>" + item.gender + "</td>";
                             html += "<td>" + item.occupation + "</td>";
                             html += "<td>" + item.cost + "</td>";
-                            html += "<td>" + item.imagePath + "</td>";
+                            html += "<td><img src='" + item.imagePath + "' width='60'></td>";
                             html += "<td>" +
                                         '<button class="btn btn-primary btn-sm edit-btn" data-id="' + item.personID + '">Edit</button> ' +
                                     "</td>";
@@ -188,7 +294,11 @@
                         console.error("Error:", error);
                     }
                 });
+            },
+            error: function(xhr){
+                console.log("ERROR:", xhr.responseText);
             }
+
         });
     });
 
@@ -215,7 +325,7 @@
                     html += "<td>" + item.gender + "</td>";
                     html += "<td>" + item.occupation + "</td>";
                     html += "<td>" + item.cost + "</td>";
-                    html += "<td>" + item.imagePath + "</td>";
+                    html += "<td><img src='" + item.imagePath + "' width='60'></td>";
                     html += "<td>" +
                                 '<button class="btn btn-primary btn-sm edit-btn" data-id="' + item.personID + '">Edit</button> ' +
                             "</td>";
@@ -278,6 +388,51 @@
         $("input[name='gender'][value='" + customer.gender + "']").prop("checked", true);
 
         $("select[name='occupation']").val(customer.occupation);
+        
+        $.ajax({
+            url: "Customer/GetUnit",
+            type: "GET",
+            data: {personID: pk},
+            dataType: "json",
+            success: function (response) {
+                var n = response.length;
+                $("#noOfUnits").val(n);
+                $("#unit").empty();
+                for(var i = 1; i <= n; i++)
+                {
+                    $("#unit").append(
+                        '<div class="row mb-3">'+
+                            '<div class="col-md-2">' +
+                                'Unit No' +
+                            '</div>' +
+                            '<div class="col-md-2">' +
+                                `<input type="text" class="form-control" id="unitNo${i}" placeholder="Unit ${i}" />` +
+                            '</div>' +
+                            '<div class="col-md-2">' +
+                                'Area' +
+                            '</div>' +
+                            '<div class="col-md-2">' +
+                                `<input type="number" class="form-control" id="area${i}" placeholder="Area ${i}" />` +
+                            '</div>' +'<div class="col-md-2">' +
+                                'Unit Cost' +
+                            '</div>' +
+                            '<div class="col-md-2">' +
+                                `<input type="number" class="form-control" id="unitCost${i}" placeholder="Cost ${i}" />` +
+                            '</div>' +
+                        '</div>'
+                    );
+
+                    $(`#unitNo${i}`).val(response[i - 1].unitNo);
+                    $(`#area${i}`).val(response[i - 1].area);
+                    $(`#unitCost${i}`).val(response[i - 1].unitCost);
+                }
+            },
+        })
+
+
+        
+
+
 
     });
 
